@@ -5,6 +5,10 @@ import "fmt"
 import "math/rand"
 import "time"
 
+const numberofboards = 101
+const boardsize = 101
+const numberofparts = 101
+
 var pos int= 1;
 var turnsofdice int= 0;
 var turnsofgame int= 0
@@ -12,7 +16,9 @@ var turnsofdiceforagame int= 0;
 var states[101]int;
 var numberofdiceturns int= 100000;
 var turnsasmoney float64 = 100;
-//turnsasmoneytakeninx:= 0;
+var turnsasmoneytakeninx float64 = 0;
+var gameturnmultiple float64 = 1;
+var gametotalmultiple float64 = 1;
 var interest float64 = 0.006;
 var prefinterest float64 = 0.0045;
 var basispoint float64 = 100;
@@ -24,6 +30,17 @@ var ladderHit [12]int;
 var snakeHit[11]int;
 var lIndex[101]int;
 var sIndex[101]int;
+var boardstates[101][101]int;
+var boardlIndex[101][101]int;
+var boardsIndex[101][101]int;
+var boardladderHit[101][12]int;
+var boardsnakeHit[101][11]int;
+var boardpos[101]int;
+var boardturnsofdiceforagame[101]int;
+var boardturnsofgame[101]int;
+var boardgameturnmultiple[101][31]float64;
+var boardgametotalmultiple[101][31]float64;
+
 func main() {
 	ladderStart=[11]int{ 8,19,21,28,36,43,50,54,61,62,66 }
 	ladderEnd=[11]int{ 26,38,82,53,57,77,91,88,99,96,87 }
@@ -54,9 +71,11 @@ func main() {
 		pos = Dice(pos);
 		fmt.Printf("%d ", pos);
 	}
-	runGame();
-	printGameStats();
-	fmt.Println("hello ramesh 1\n")
+	//runGame();
+	//runGames();
+	commonboardrunGames();
+	//printGameStats();
+	fmt.Printf("hello ramesh \n")
 }
 func multiply(m1 int, m2 int) int{
 	fmt.Printf(" %d %d", m1, m2);
@@ -78,10 +97,10 @@ func runGame(){
 	for i:= 1; i < 11; i++{snakeHit[i] = 0;}
 	//getSnakesLadders(args);
 	//System.out.println("turnsasmoneyatstart=" + turnsasmoney);
-	fillLadders();
-	fillSnakes();
-	//fillLaddersrand();
-	//fillSnakesrand();
+	//fillLadders();
+	//fillSnakes();
+	fillLaddersrand();
+	fillSnakesrand();
 	for turnsofdice<numberofdiceturns{
 		pos = Dice(pos);
 		TurnsofDice();
@@ -126,14 +145,187 @@ func numberofGames(){
 	//System.out.println("turnsofgame="+turnsofgame);
 	//System.out.println("position="+pos);
 	turnsofgame++;
-	turnsasmoney = turnsasmoney*(((10000 - basispoint) / 10000) + (basispoint / (float64(turnsofdiceforagame) * 350)));
-	//logmultiple();
+	//turnsasmoney = turnsasmoney*(((10000 - basispoint) / 10000) + (basispoint / (float64(turnsofdiceforagame) * 350)));
+	logmultiple();
 	turnsofdiceforagame = 0;
 	//if(turnsofgame%35==0)numberofdiceturns=numberofdiceturns+100;
 }
 func printGameStats(){
-	fmt.Printf("turnsasmoney= %f \n", turnsasmoney);
+	//fmt.Printf("turnsasmoney= %f \n", turnsasmoney);
+	fmt.Printf(" gametotalmultiple %f \n", gametotalmultiple);
 }
+func logmultiple(){
+	gameturnmultiple = ((10000 - basispoint) / 10000)*(turnsasmoneytakeninx + 1)- turnsasmoneytakeninx*(1 + interest)+ ((basispoint / (float64(turnsofdiceforagame) * 350)))*(turnsasmoneytakeninx + 1);
+	//gameturnmultiple = ((10000 - basispoint) / 10000) + ((basispoint / (turnsofdiceforagame * 350)));
+	//printf(" gameturnmultiple %f ", gameturnmultiple);
+	gametotalmultiple = gametotalmultiple * gameturnmultiple;
+	gameturnmultiple = 1;
+	//loggameturnmultiple = log(((10000 - basispoint) / 10000) + ((basispoint / (turnsofdiceforagame * 350))));
+	//printf(" loggameturnmultiple %e ", loggameturnmultiple);
+	//loggametotalmultiple = loggametotalmultiple + loggameturnmultiple;
+	//loggameturnmultiple = 0;
+	//printf(" loggametotalmultiple %e ", loggametotalmultiple);
+}
+func runGames(){
+	for i:= 0; i < 3; i++{
+		turnsasmoneytakeninx = float64(i);
+		//printf(" turnsasmoneytakeninx %f ", turnsasmoneytakeninx);
+		fmt.Printf(" %f ", turnsasmoneytakeninx);
+		runGame();
+		printGameStats();
+		turnsofdice = 0;
+		turnsofgame = 0;
+	}
+}
+func fillLaddersrand(){
+	for i:= 0; i<11; i++{
+		if (rand.Intn(6) > 2){
+			states[ladderStart[i]] = ladderEnd[i];
+			lIndex[ladderStart[i]] = i + 1;
+		}
+	}
+}
+func fillSnakesrand(){
+	for i:= 0; i<10; i++{
+		if (rand.Intn(6) > 2){
+			states[snakeStart[i]] = snakeEnd[i];
+			sIndex[snakeStart[i]] = i + 1;
+		}
+	}
+}
+func boardrunGames(){
+	gameturnmultiple = 1;
+	turnsasmoneytakeninx = 0;
+	for h:= 1; h<101; h++{
+		boardpos[h] = 1;
+		boardturnsofdiceforagame[h] = 0;
+		boardturnsofgame[h] = 0;
+		//boardgameturnmultiple[h] = 1;
+		//boardgametotalmultiple[h] = 1;
+		//commonboardgametotalmultipletakenin[h] = 0;
+		for i:= 1; i < 31; i++{
+			boardgameturnmultiple[h][i] = 1;
+			boardgametotalmultiple[h][i] = 1;
+			//if (h<2)commonboardgametotalmultipleleft[i] = 1;
+			//if (h<2)commonboardgametotalmultipleadded[i] = 1;
+		}
+
+		for i:= 1; i<101; i++{
+			boardstates[h][i] = 0;
+			boardlIndex[h][i] = 0;
+			boardsIndex[h][i] = 0;
+		}
+
+		for i:= 1; i < 12; i++{boardladderHit[h][i] = 0;}
+		for i:= 1; i < 11; i++{boardsnakeHit[h][i] = 0;}
+	}
+	boardfillLaddersrand();
+	boardfillSnakesrand();
+	for turnsofdice<numberofdiceturns{
+		boardDice();
+		boardTurnsofDice();
+		for h := 1; h<101; h++{
+			if (boardpos[h] > 100){boardnumberofGames1(h);}
+		}
+		boardSnakesLadders();
+		//boardshuffleSnakesrand();
+		//boardshuffleLaddersrand();
+	}
+	//commonboardlogtotalmultiple();
+}
+func boardfillLaddersrand(){
+	for h := 1; h<101; h++{
+		for i:= 0; i<11; i++{
+			if (rand.Intn(6) > 2){
+				boardstates[h][ladderStart[i]] = ladderEnd[i];
+				boardlIndex[h][ladderStart[i]] = i + 1;
+			}
+		}
+	}
+}
+func boardfillSnakesrand(){
+	for h := 1; h<101; h++{
+		for i:= 0; i<10; i++{
+			if (rand.Intn(6) > 2){
+				boardstates[h][snakeStart[i]] = snakeEnd[i];
+				boardsIndex[h][snakeStart[i]] = i + 1;
+			}
+		}
+	}
+}
+func boardDice(){
+	d:= rand.Intn(6) + 1;
+	for h := 1; h<101; h++{
+		boardpos[h] = boardpos[h] + d;
+		//printf(" %d", pos);
+	}
+}
+func boardTurnsofDice(){
+	turnsofdice++;
+	for h := 1; h<101; h++{
+		boardturnsofdiceforagame[h]++;
+	}
+}
+func boardSnakesLadders(){
+	for h := 1; h<101; h++{
+		//if(boardpos[h]>100){fmt.Printf("error");}
+		if (boardstates[h][boardpos[h]] != 0){
+			if (boardlIndex[h][boardpos[h]] != 0){boardladderHit[h][boardlIndex[h][boardpos[h]]]++;}
+			if (boardsIndex[h][boardpos[h]] != 0){boardsnakeHit[h][boardsIndex[h][boardpos[h]]]++;}
+			//if(pos>states[pos])printf("snakehit %d",pos);
+			//if(pos<states[pos])printf("ladderhit %d",pos);
+			boardpos[h] = boardstates[h][boardpos[h]];
+		}
+	}
+}
+func boardlogmultiple(h int){
+	for i:= 1; i < 11; i++{
+		turnsasmoneytakeninx = float64(i - 1);
+		gameturnmultiple = ((10000 - basispoint) / 10000)*(turnsasmoneytakeninx + 1)- turnsasmoneytakeninx*(1 + interest)+ ((basispoint / (float64(boardturnsofdiceforagame[h]) * 350)))*(turnsasmoneytakeninx + 1);
+		boardgametotalmultiple[h][i] = boardgametotalmultiple[h][i] * gameturnmultiple;
+		gameturnmultiple = 1;
+	}
+	//boardgameturnmultiple[h] = ((10000 - basispoint) / 10000)*(turnsasmoneytakeninx + 1)
+	//- turnsasmoneytakeninx*(1 + interest)
+	//+ ((basispoint / (boardturnsofdiceforagame[h] * 350)))*(turnsasmoneytakeninx + 1);
+	//boardgametotalmultiple[h] = boardgametotalmultiple[h] * boardgameturnmultiple[h];
+	//boardgameturnmultiple[h] = 1;
+}
+func boardnumberofGames1(h int){
+	boardpos[h] = boardpos[h] - 100;
+	//System.out.println("turnsofgame="+turnsofgame);
+	//System.out.println("position="+pos);
+	boardturnsofgame[h]++;
+	//turnsasmoney = turnsasmoney*(((10000 - basispoint) / 10000) + (basispoint / (turnsofdiceforagame * 350)));
+	boardlogmultiple(h);
+	//commonboardlogmultiple(h);
+	//prefcommonboardlogmultiple(h);
+	//prefcommonboardlogmultiple1(h);
+	boardturnsofdiceforagame[h] = 0;
+	//if(turnsofgame%35==0)numberofdiceturns=numberofdiceturns+100;
+}
+func boardprintGameStats(){
+	for h:= 1; h<101; h++{
+		for i:= 1; i < 11; i++{
+			fmt.Printf(" %.1f ", boardgametotalmultiple[h][i]);
+		}
+		fmt.Printf("\n");
+		//}
+		//for (int h = 1; h < 101; h++)
+		//{
+		//for i:= 1; i < 11; i++{fmt.Printf("L %d = %d \n", i, boardladderHit[h][i]);}
+		//for i:= 1; i <= 10; i++{fmt.Printf("S %d = %d \n", i, boardsnakeHit[h][i]);}
+	}
+}
+func commonboardrunGames(){
+	for i:= 0; i < 3; i++{
+		boardrunGames();
+		turnsofdice = 0;
+		boardprintGameStats();
+		//prefcommonboardprintGameStats1();
+	}
+}
+
 /*
 #include <stdio.h>
 #include <stdlib.h>
