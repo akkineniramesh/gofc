@@ -48,6 +48,12 @@ var commonboardgametotalmultipletakenin[101]float64;
 var prefcommonboardgametotalmultipleleft[101][31]float64;
 var prefcommonboardgametotalmultipleadded[101][31]float64;
 var prefcommonboardgametotalmultipletakenin[101][31]float64;
+var logprefgamewholemultiple float64 = 0;
+var logprefwholemultipletaken float64 = 0;
+var logprefwholemultipleadded float64 = 1;
+var logprefwholemultipleleft float64 = 1;
+var prefboardgametotalmultiple[numberofboards]float64;
+
 
 func main() {
 	ladderStart=[11]int{ 8,19,21,28,36,43,50,54,61,62,66 }
@@ -83,7 +89,8 @@ func main() {
 	//runGame();
 	//runGames();
 	//boardrunGames();
-	commonboardrunGames();
+	//commonboardrunGames();
+	prefcommonboardrunGames();
 	//printGameStats();
 	fmt.Printf("hello ramesh \n")
 }
@@ -546,6 +553,143 @@ func prefcommonboardprintGameStats1(){
 		fmt.Printf(" %.1f ", prefcommonboardgametotalmultipleleft[h][2]);
 		fmt.Printf(" %.1f ", prefcommonboardgametotalmultipletakenin[h][2]);
 		//fmt.Printf(" %.1f ", boardgametotalmultiple[h][1]);
+	}
+	fmt.Printf("\n");
+	fmt.Printf("snakes shuffled %d ", boardsnakesshuffled);
+	fmt.Printf("ladders shuffled %d \n", boardladdersshuffled);
+	fmt.Printf("\n");
+}
+func prefcommonboardrunGames(){
+	for i:= 0; i < 3; i++{
+		//commonboardrunGame();
+		prefcommonboardrunGame();
+		turnsofdice = 0;
+		//commonboardprintGameStats();
+		prefcommonboardprintGameStats2();
+	}
+}
+func prefcommonboardrunGame(){
+	gameturnmultiple = 1;
+	turnsasmoneytakeninx = 0;
+	logprefgamewholemultiple = 1;
+    logprefwholemultipletaken = 0;
+    logprefwholemultipleadded = 1;
+    logprefwholemultipleleft = 1;
+	for h:= 1; h<101; h++{
+		boardpos[h] = 1;
+		boardturnsofdiceforagame[h] = 0;
+		boardturnsofgame[h] = 0;
+		//boardgameturnmultiple[h] = 1;
+		prefboardgametotalmultiple[h] = 0.01;
+		//commonboardgametotalmultipletakenin[h] = 0;
+		//prefcommonboardgametotalmultipleleft[h] = 1;
+		//prefcommonboardgametotalmultipleadded[h] = 1;
+		for i:= 1; i<101; i++{
+			boardstates[h][i] = 0;
+			boardlIndex[h][i] = 0;
+			boardsIndex[h][i] = 0;
+		}
+
+		for i:= 1; i < 12; i++{boardladderHit[h][i] = 0;}
+		for i:= 1; i < 11; i++{boardsnakeHit[h][i] = 0;}
+		boardfillLaddersrand(h);
+		boardfillSnakesrand(h);
+	}
+	for turnsofdice<numberofdiceturns{
+		boardDice();
+		boardTurnsofDice();
+		for h := 1; h<101; h++{
+			if (boardpos[h] > 100){prefboardnumberofGames(h);}
+		}
+		boardSnakesLadders();
+		prefboardshuffleSnakesLaddersrand();
+		if (turnsofdice % 30 == 0){prefcommonboardlogwholemultiple1()};
+	}
+	//commonboardlogtotalmultiple();
+}
+func prefcommonboardlogwholemultiple1(){
+    logprefgamewholemultiple = logprefwholemultipleadded + logprefwholemultipleleft- logprefwholemultipletaken*(1 + prefinterest);
+    //if (turnsofdice % 3000 == 0){
+      //  fmt.Printf("logprefwholemultipletaken %.f", logprefwholemultipletaken);}
+    logprefwholemultipletaken = 0;
+    ratio:= logprefgamewholemultiple / (logprefwholemultipleadded + logprefwholemultipleleft);
+    for h := 1; h<101; h++{
+        boardgametotalmultiple[h][1] = boardgametotalmultiple[h][1] * ratio;
+    }
+    logprefwholemultipleleft = logprefwholemultipleleft * ratio;
+    logprefwholemultipleadded = logprefgamewholemultiple - logprefwholemultipleleft;
+}
+func prefboardshuffleSnakesLaddersrand(){
+	for h:= 1; h<101; h++{
+		k:= rand.Intn(numberofparts) + 1;
+		if ((h * 1) == (rand.Intn(numberofboards/k) + 1)){
+			//printf("shuffling snakes %d ", h);
+			boardsnakesshuffled++;
+			boardladdersshuffled++;
+			for i:= 1; i<101; i++{
+				boardstates[h][i] = 0;
+				boardlIndex[h][i] = 0;
+				boardsIndex[h][i] = 0;
+			}
+			boardfillSnakesrand(h);
+			boardfillLaddersrand(h);
+		}
+	}
+}
+
+func prefboardnumberofGames(h int){
+	boardpos[h] = boardpos[h] - 100;
+	//System.out.println("turnsofgame="+turnsofgame);
+	//System.out.println("position="+pos);
+	boardturnsofgame[h]++;
+	//turnsasmoney = turnsasmoney*(((10000 - basispoint) / 10000) + (basispoint / (turnsofdiceforagame * 350)));
+	//boardlogmultiple(h);
+	//commonboardlogmultiple(h);
+	//prefcommonboardlogmultiple(h);
+	prefcommonboardlogmultiple2(h);
+	boardturnsofdiceforagame[h] = 0;
+	//if(turnsofgame%35==0)numberofdiceturns=numberofdiceturns+100;
+}
+func prefcommonboardlogmultiple2(h int){
+	logprefwholemultipleadded = logprefwholemultipleadded - prefboardgametotalmultiple[h];
+    turnsasmoneytakeninx = 0;
+    gameturnmultiple = ((10000 - basispoint) / 10000)*(turnsasmoneytakeninx + 1)- turnsasmoneytakeninx*(1 + prefinterest)+ (basispoint / (float64(boardturnsofdiceforagame[h]) * 350))*(turnsasmoneytakeninx + 1);
+	prefboardgametotalmultiple[h] = prefboardgametotalmultiple[h] * gameturnmultiple;
+    prefcommonboardallocatemultiple3(h);
+    gameturnmultiple = 1;
+}
+func prefcommonboardallocatemultiple3(h int){
+    if (prefboardgametotalmultiple[h] >(logprefwholemultipleleft) * 10){
+        logprefwholemultipleleft = logprefwholemultipleleft + (prefboardgametotalmultiple[h] / 200);
+        //prefboardgametotalmultiple[h] = prefboardgametotalmultiple[h] * 0.995;
+        logprefwholemultipletaken = logprefwholemultipletaken + prefboardgametotalmultiple[h];
+        prefboardgametotalmultiple[h] = prefboardgametotalmultiple[h] * 1.995;
+    }else if (prefboardgametotalmultiple[h] > (logprefwholemultipleadded / 240)){
+        if (prefboardgametotalmultiple[h] < logprefwholemultipleleft * 2){
+            //logprefwholemultipleleft = logprefwholemultipleleft - (prefboardgametotalmultiple[h] / 20);
+            logprefwholemultipletaken = logprefwholemultipletaken + prefboardgametotalmultiple[h] * 10;
+            prefboardgametotalmultiple[h] = prefboardgametotalmultiple[h] * 11;
+        }else{
+            //logprefwholemultipletaken = logprefwholemultipletaken + prefboardgametotalmultiple[h] / 200;
+            //prefboardgametotalmultiple[h] = prefboardgametotalmultiple[h] * 1.005;
+        }
+    }else if (prefboardgametotalmultiple[h] < (logprefwholemultipleadded / 3000)){
+        logprefwholemultipleleft = logprefwholemultipleleft + prefboardgametotalmultiple[h];
+        prefboardgametotalmultiple[h] = logprefwholemultipleleft / 1000;
+        logprefwholemultipleleft = logprefwholemultipleleft - prefboardgametotalmultiple[h];
+    }
+    logprefwholemultipleadded = logprefwholemultipleadded + prefboardgametotalmultiple[h];
+}
+func prefcommonboardprintGameStats2(){
+	fmt.Printf(" %.1f ", logprefgamewholemultiple);
+	//fmt.Printf(" %.1f ", commonboardgametotalmultipleadded[1]);
+	fmt.Printf("\n");
+	//fmt.Printf(" %.1f ", commonboardgametotalmultipleleft[1]);
+	for h:= 1; h<101; h++{
+		//fmt.Printf(" %.1f ", prefcommonboardgametotalmultipleadded[h][2]);
+		//fmt.Printf(" %.1f ", prefcommonboardgametotalmultipleleft[h][2]);
+		//fmt.Printf(" %.1f ", prefcommonboardgametotalmultipletakenin[h][2]);
+		fmt.Printf(" %.1f ", prefboardgametotalmultiple[h]);
 	}
 	fmt.Printf("\n");
 	fmt.Printf("snakes shuffled %d ", boardsnakesshuffled);
